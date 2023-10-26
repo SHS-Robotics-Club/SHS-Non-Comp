@@ -23,66 +23,49 @@ import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.Trajectory
 
 import java.util.Arrays;
 
+/**
+ * Autonomous OpMode named "Pl: Left". This OpMode instructs the robot to perform a preloaded cone maneuver
+ * from the left position.
+ */
 @Config
 @Autonomous(name = "Pl: Left", group = ".Score", preselectTeleOp = "MainTeleOp")
 public class PreloadLeft extends CommandOpMode {
 
+    @Override
+    public void initialize() {
+        // Initialize robot hardware
+        final Robot bot = new Robot(hardwareMap, true);
 
-	@Override
-	public void initialize() {
-		// Get Devices
-		final Robot bot = new Robot(hardwareMap, true);
+        // Setup telemetry for dashboard
+        FtcDashboard dashboard          = FtcDashboard.getInstance(); // FTC Dashboard Instance
+        Telemetry    dashboardTelemetry = dashboard.getTelemetry();
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-		// Setup Telemetry
-		FtcDashboard dashboard          = FtcDashboard.getInstance(); //FTC Dashboard Instance
-		Telemetry    dashboardTelemetry = dashboard.getTelemetry();
-		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        // Set up trajectory constraints for the preloaded ring maneuver
+        TrajectoryVelocityConstraint preload = new MinVelocityConstraint(Arrays.asList(new TranslationalVelocityConstraint(30), new AngularVelocityConstraint(5)));
 
-		TrajectoryVelocityConstraint preload = new MinVelocityConstraint(Arrays.asList(new TranslationalVelocityConstraint(30), new AngularVelocityConstraint(5)));
+        // Define the trajectory sequences for the autonomous maneuver
+        TrajectorySequence auto1 = bot.drive.trajectorySequenceBuilder(new Pose2d(-40.00, -64.00, Math.toRadians(90.00))).splineTo(new Vector2d(-34.00, -42.00), Math.toRadians(90.00)).setVelConstraint(preload).splineTo(new Vector2d(-27.00, -9.50), Math.toRadians(65.00)).build();
 
-		TrajectorySequence auto1 = bot.drive.trajectorySequenceBuilder(new Pose2d(-40.00, -64.00, Math.toRadians(90.00)))
-		                                    .splineTo(new Vector2d(-34.00, -42.00), Math.toRadians(90.00))
-		                                    .setVelConstraint(preload)
-		                                    .splineTo(new Vector2d(-27.00, -9.50), Math.toRadians(65.00))
-		                                    .build();
+        TrajectorySequence auto2 = bot.drive.trajectorySequenceBuilder(auto1.end()).setReversed(true).splineTo(new Vector2d(-35.00, -37.00), Math.toRadians(-90.00)).build();
 
-		TrajectorySequence auto2 = bot.drive.trajectorySequenceBuilder(auto1.end())
-		                                    .setReversed(true)
-		                                    .splineTo(new Vector2d(-35.00, -37.00), Math.toRadians(-90.00))
-		                                    .build();
+        // Set robot's initial pose to the start of the first trajectory sequence
+        bot.drive.setPoseEstimate(auto1.start());
 
-		bot.drive.setPoseEstimate(auto1.start());
+        // Wait for the start command from the driver station
+        waitForStart();
 
-		waitForStart();
+        // Register the robot lift subsystem
+        register(bot.lift);
 
-		register(bot.lift);
-		schedule(new RunCommand(() -> {
-			if (isStopRequested()) return;
-			dashboard.startCameraStream(bot.aprilTag.getCamera(), 0);
-			telemetry.update();
-		}));
+        // Start camera stream on the dashboard
+        schedule(new RunCommand(() -> {
+            if (isStopRequested()) return;
+            dashboard.startCameraStream(bot.aprilTag.getCamera(), 0);
+            telemetry.update();
+        }));
 
-		schedule(new SequentialCommandGroup(
-				         bot.DETECTOR_WAIT.withTimeout(2000),
-				         bot.CLAW_CLOSE,
-				         new WaitCommand(1000),
-				         new TrajectoryFollowerCommand(bot.drive, auto1).alongWith(new WaitCommand(500).andThen(bot.LIFT_HIGH)),
-				         bot.CLAW_OPEN,
-				         new WaitCommand(1000),
-				         bot.LIFT_FLOOR.alongWith(new TrajectoryFollowerCommand(bot.drive, auto2)),
-				         new ParkCommandWithout(bot.drive, bot.aprilTag, auto2.end()))
-		        );
-
-
-/*		bot.DETECTOR_WAIT.withTimeout(5000)
-		                 .andThen(bot.CLAW_CLOSE)
-		                 .alongWith(new WaitCommand(1000))
-		                 .andThen(bot.LIFT_HIGH)
-		                 .alongWith(new TrajectoryFollowerCommand(bot.drive, auto1))
-		                 .andThen(bot.CLAW_OPEN)
-		                 .andThen(new WaitCommand(5000))
-		                 .andThen(bot.LIFT_FLOOR)
-		                 .alongWith(new TrajectoryFollowerCommand(bot.drive, auto2))
-		                 .andThen(new ParkCommandWithout(bot.drive, bot.aprilTag, ParkCommandWithout.StartingZone.BLUE_LEFT))*/
-	}
+        // Execute a sequence of commands for the preloaded ring maneuver
+        schedule(new SequentialCommandGroup(bot.DETECTOR_WAIT.withTimeout(2000), bot.CLAW_CLOSE, new WaitCommand(1000), new TrajectoryFollowerCommand(bot.drive, auto1).alongWith(new WaitCommand(500).andThen(bot.LIFT_HIGH)), bot.CLAW_OPEN, new WaitCommand(1000), bot.LIFT_FLOOR.alongWith(new TrajectoryFollowerCommand(bot.drive, auto2)), new ParkCommandWithout(bot.drive, bot.aprilTag, auto2.end())));
+    }
 }

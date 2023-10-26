@@ -13,42 +13,43 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.a_opmodes.Robot;
 import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.TrajectorySequence;
 
-
+/**
+ * Autonomous OpMode named "Cycle". This OpMode performs a predefined sequence of movements for
+ * the robot to complete a specific task.
+ */
 @Autonomous(name = "Cycle", group = ".Score", preselectTeleOp = "MainTeleOp")
 public class Cycle extends CommandOpMode {
-	@Override
-	public void initialize() {
-		// Get Devices
-		final Robot bot = new Robot(hardwareMap, true);
+    @Override
+    public void initialize() {
+        // Initialize robot hardware
+        final Robot bot = new Robot(hardwareMap, true);
 
-		// Setup Telemetry
-		FtcDashboard dashboard          = FtcDashboard.getInstance(); //FTC Dashboard Instance
-		Telemetry    dashboardTelemetry = dashboard.getTelemetry();
-		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        // Setup telemetry for dashboard
+        FtcDashboard dashboard          = FtcDashboard.getInstance(); // FTC Dashboard Instance
+        Telemetry    dashboardTelemetry = dashboard.getTelemetry();
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-		bot.drive.setPoseEstimate(new Pose2d(-40.00, -64.00, Math.toRadians(90.00)));
+        // Set the initial robot pose
+        bot.drive.setPoseEstimate(new Pose2d(-40.00, -64.00, Math.toRadians(90.00)));
 
-		TrajectorySequence auto1 = bot.drive.trajectorySequenceBuilder(new Pose2d(-40.00, -64.00, Math.toRadians(90.00)))
-		                                    .splineTo(new Vector2d(-34.00, -42.00), Math.toRadians(90.00))
-		                                    .splineTo(new Vector2d(-27.00, -9.50), Math.toRadians(55.00))
-		                                    .build();
+        // Define the autonomous trajectory for the robot
+        TrajectorySequence auto1 = bot.drive.trajectorySequenceBuilder(new Pose2d(-40.00, -64.00, Math.toRadians(90.00))).splineTo(new Vector2d(-34.00, -42.00), Math.toRadians(90.00)).splineTo(new Vector2d(-27.00, -9.50), Math.toRadians(55.00)).build();
 
-		waitForStart();
+        // Wait for the start command from the driver station
+        waitForStart();
 
-		register(bot.lift);
-		schedule(new RunCommand(() -> {
-			if (isStopRequested()) return;
-			dashboard.startCameraStream(bot.aprilTag.getCamera(), 0);
-			telemetry.update();
-		}));
+        // Register robot subsystems and commands
+        register(bot.lift);
 
-		schedule(
-				bot.CLAW_CLOSE
-						.andThen(new WaitCommand(500))
-						.andThen(bot.LIFT_HIGH)
-						.andThen(new WaitCommand(5000))
-						.andThen(bot.LIFT_FLOOR)
-		        );
+        // Run commands sequentially for autonomous movement
+        schedule(new RunCommand(() -> {
+            if (isStopRequested()) return;
+            // Start camera stream on the dashboard
+            dashboard.startCameraStream(bot.aprilTag.getCamera(), 0);
+            telemetry.update();
+        }));
 
-	}
+        // Schedule commands for robot actions
+        schedule(bot.CLAW_CLOSE.andThen(new WaitCommand(500)).andThen(bot.LIFT_HIGH).andThen(new WaitCommand(5000)).andThen(bot.LIFT_FLOOR));
+    }
 }

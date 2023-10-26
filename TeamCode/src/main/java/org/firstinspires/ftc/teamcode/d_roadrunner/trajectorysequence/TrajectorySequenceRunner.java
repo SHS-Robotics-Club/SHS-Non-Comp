@@ -17,12 +17,13 @@ import com.acmerobotics.roadrunner.trajectory.TrajectoryMarker;
 import com.acmerobotics.roadrunner.util.NanoClock;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
+import org.firstinspires.ftc.teamcode.d_roadrunner.util.DashboardUtil;
+import org.firstinspires.ftc.teamcode.d_roadrunner.util.LogFiles;
 import org.firstinspires.ftc.teamcode.d_roadrunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.sequencesegment.SequenceSegment;
 import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.sequencesegment.TrajectorySegment;
 import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.sequencesegment.TurnSegment;
 import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.sequencesegment.WaitSegment;
-import org.firstinspires.ftc.teamcode.d_roadrunner.util.DashboardUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -209,12 +210,12 @@ public class TrajectorySequenceRunner {
             );
         }
 
-/*        if (targetPose != null) {
+        if (targetPose != null) {
             LogFiles.record(
                     targetPose, poseEstimate, voltage,
                     lastDriveEncPositions, lastDriveEncVels, lastTrackingEncPositions, lastTrackingEncVels
-            );
-        }*/
+                           );
+        }
 
         packet.put("x", poseEstimate.getX());
         packet.put("y", poseEstimate.getY());

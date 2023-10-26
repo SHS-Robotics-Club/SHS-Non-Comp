@@ -38,6 +38,7 @@ public class OdometryPodLocalizer extends ThreeTrackingWheelLocalizer {
     public static double X_MULTIPLIER = 1.007219059; //1.00514143; // Multiplier in the X direction
     public static double Y_MULTIPLIER = 1.016464459; //1.019011987; // Multiplier in the Y direction
 
+
     private Encoder leftEncoder, rightEncoder, frontEncoder;
 
     private List<Integer> lastEncPositions, lastEncVels;
@@ -55,7 +56,6 @@ public class OdometryPodLocalizer extends ThreeTrackingWheelLocalizer {
         leftEncoder  = new Encoder(hardwareMap.get(DcMotorEx.class, "encoderLeftLift"));
         rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "encoderRight"));
         frontEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "encoderRear"));
-        //leftEncoder.setDirection(Encoder.Direction.REVERSE);
         rightEncoder.setDirection(Encoder.Direction.REVERSE);
         frontEncoder.setDirection(Encoder.Direction.REVERSE);
     }
@@ -77,9 +77,9 @@ public class OdometryPodLocalizer extends ThreeTrackingWheelLocalizer {
         lastEncPositions.add(frontPos);
 
         return Arrays.asList(
-                encoderTicksToInches(leftPos) * X_MULTIPLIER,
-                encoderTicksToInches(rightPos) * X_MULTIPLIER,
-                encoderTicksToInches(frontPos) * Y_MULTIPLIER
+                encoderTicksToInches(leftPos),
+                encoderTicksToInches(rightPos),
+                encoderTicksToInches(frontPos)
         );
     }
 
@@ -95,10 +95,11 @@ public class OdometryPodLocalizer extends ThreeTrackingWheelLocalizer {
         lastEncVels.add(rightVel);
         lastEncVels.add(frontVel);
 
+
         return Arrays.asList(
                 encoderTicksToInches(leftVel) * X_MULTIPLIER,
                 encoderTicksToInches(rightVel) * X_MULTIPLIER,
                 encoderTicksToInches(frontVel) * Y_MULTIPLIER
-        );
+                            );
     }
 }

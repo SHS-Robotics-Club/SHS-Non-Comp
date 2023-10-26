@@ -1,17 +1,5 @@
 package org.firstinspires.ftc.teamcode.a_opmodes;
 
-/*
- * TYPE			NAME			ID		    DESCRIPTION
- * ------------------------------------------------------------
- * MOTOR		liftLeft		liftL		Lift Motor Left
- * MOTOR		liftRight		liftR		Lift Motor Right
- *
- * SERVO        clawLeft        clawLeft    Claw Left (Open/Close)
- * SERVO        clawRight       clawRight   Claw Right (Open/Close)
- *
- * CRSERVO		spool			spool		Tensions MGN Rail
- */
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.InstantCommand;
@@ -26,7 +14,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.b_commands.ClawCommand;
 import org.firstinspires.ftc.teamcode.c_subsystems.ClawSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.LiftSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.MecanumSubsystem;
@@ -35,127 +22,121 @@ import org.firstinspires.ftc.teamcode.d_roadrunner.drive.MecanumDrive;
 
 import java.util.List;
 
+/*
+ * TYPE          NAME            ID          DESCRIPTION
+ * ------------------------------------------------------------
+ * MOTOR         liftLeft        liftL       Lift Motor Left
+ * MOTOR         liftRight       liftR       Lift Motor Right
+ *
+ * SERVO         clawLeft        clawLeft    Claw Left (Open/Close)
+ * SERVO         clawRight       clawRight   Claw Right (Open/Close)
+ *
+ * CRSERVO       spool           spool       Tensions MGN Rail
+ */
+
+/**
+ * Represents the robot's hardware components and subsystems.
+ */
 @Config
 public class Robot {
-	public static double akP = 0.005, akI = 0.0, akD = 0, akF = 0.0;
-	public VoltageSensor voltageSensor;
+    public static double akP = 0.005, akI = 0.0, akD = 0, akF = 0.0;
 
-	public MotorEx liftLeft, liftRight;// Motors
-	public MotorGroup liftGroup;// Motor Group
-	public ServoEx    clawLeft, clawRight; // Servos
-	public CRServo spool; // CR Servo
-	boolean isAuto;
+    // Hardware components
+    public VoltageSensor voltageSensor;
+    public MotorEx       liftLeft, liftRight;
+    public MotorGroup liftGroup;
+    public ServoEx    clawLeft, clawRight;
+    public CRServo          spool;
+    public FtcDashboard     dashboard = FtcDashboard.getInstance();
+    public List<LynxModule> revHubs;
 
-	// MISC DEFINITIONS
-	public FtcDashboard     dashboard = FtcDashboard.getInstance(); //FTC Dashboard Instance
-	public List<LynxModule> revHubs; //Lynx Module for REV Hubs
+    // Subsystems
+    public MecanumSubsystem  drive;
+    public ClawSubsystem     claw;
+    public LiftSubsystem     lift;
+    public AprilTagSubsystem aprilTag;
 
-	public MecanumSubsystem drive;
-	public ClawSubsystem    claw;
-	public LiftSubsystem    lift;
+    // Commands
+    public InstantCommand CLAW_TOGGLE, CLAW_OPEN, CLAW_CLOSE, LIFT_FLOOR, LIFT_LOW, LIFT_MED, LIFT_HIGH, LIFT_LOWER, LIFT_DELOWER, LIFT_DOWN, LIFT_UP;
+    public WaitUntilCommand DETECTOR_WAIT;
 
-	public InstantCommand LIFT_FLOOR, LIFT_LOW, LIFT_MED, LIFT_HIGH, LOWER_T, LOWER_F, LIFT_DOWN, LIFT_UP;
-	public ClawCommand CLAW_OPEN, CLAW_CLOSE;
-	//public LiftCommand LIFT_FLOOR, LIFT_LOW, LIFT_MED, LIFT_HIGH;
+    /**
+     * Constructor for the Robot class.
+     *
+     * @param hardwareMap The hardware map for accessing robot components.
+     */
+    public Robot(HardwareMap hardwareMap) {
+        this(hardwareMap, false);
+    }
 
-	public AprilTagSubsystem aprilTag;
-	public WaitUntilCommand  DETECTOR_WAIT;
+    /**
+     * Overloaded constructor for the Robot class.
+     *
+     * @param hardwareMap The hardware map for accessing robot components.
+     * @param isAuto      A flag indicating if the robot is in autonomous mode.
+     */
+    public Robot(HardwareMap hardwareMap, boolean isAuto) {
+        // Initialize sensors and dashboard
+        voltageSensor = hardwareMap.voltageSensor.iterator().next();
+        dashboard     = FtcDashboard.getInstance();
 
-	public Robot(HardwareMap hardwareMap) {
-		this(hardwareMap, false);
-	}
+        // Bulk Read for REV Hubs
+        revHubs = hardwareMap.getAll(LynxModule.class);
+        //revHubs.get(1).getCurrent("volt");
+        for (LynxModule hub : revHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
 
-	public Robot(HardwareMap hardwareMap, boolean isAuto) {
+        // Initialize motors and servos
+        liftLeft  = new MotorEx(hardwareMap, "liftL", MotorEx.GoBILDA.RPM_312);
+        liftRight = new MotorEx(hardwareMap, "encoderLeftLift", MotorEx.GoBILDA.RPM_312);
+        liftLeft.setInverted(true);
+        liftLeft.resetEncoder();
+        liftGroup = new MotorGroup(liftLeft, liftRight);
+        liftGroup.setRunMode(MotorEx.RunMode.VelocityControl);
+        liftGroup.setZeroPowerBehavior(MotorEx.ZeroPowerBehavior.BRAKE);
 
-		voltageSensor = hardwareMap.voltageSensor.iterator().next();
+        clawLeft  = new SimpleServo(hardwareMap, "clawLeft", -180, 180, AngleUnit.DEGREES);
+        clawRight = new SimpleServo(hardwareMap, "clawRight", -180, 180, AngleUnit.DEGREES);
+        clawRight.setInverted(true);
 
-		this.isAuto = isAuto;
+        spool = new CRServo(hardwareMap, "spool");
+        spool.setInverted(true);
 
-		// Bulk Read
-		revHubs = hardwareMap.getAll(LynxModule.class);
+        // Initialize subsystems
+        drive = new MecanumSubsystem(new MecanumDrive(hardwareMap), true);
+        claw  = new ClawSubsystem(clawLeft, clawRight);
+        lift  = new LiftSubsystem(liftGroup, spool);
 
-		for (LynxModule hub : revHubs) {
-			hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
-		}
+        // Initialize commands
+        CLAW_OPEN   = new InstantCommand(claw::openClaw, claw);
+        CLAW_CLOSE  = new InstantCommand(claw::closeClaw, claw);
+        CLAW_TOGGLE = new InstantCommand(claw::toggleClaw, claw);
 
-		// MOTORS ----------------------------------------------------------------------------------------------------
-		// Map
-		liftLeft  = new MotorEx(hardwareMap, "liftL", MotorEx.GoBILDA.RPM_312);
-		liftRight = new MotorEx(hardwareMap, "encoderLeftLift", MotorEx.GoBILDA.RPM_312);
+        LIFT_FLOOR = new InstantCommand(lift::moveToFloor, lift);
+        LIFT_LOW   = new InstantCommand(lift::moveToLow, lift);
+        LIFT_MED   = new InstantCommand(lift::moveToMedium, lift);
+        LIFT_HIGH  = new InstantCommand(lift::moveToHigh, lift);
 
-		// Reset encoders and set direction
-		liftLeft.setInverted(true);
-		liftLeft.resetEncoder();
+        LIFT_LOWER   = new InstantCommand(() -> lift.lower(true));
+        LIFT_DELOWER = new InstantCommand(() -> lift.lower(false));
 
-		// Group lift motors
-		liftGroup = new MotorGroup(liftLeft, liftRight);
+        LIFT_DOWN = new InstantCommand(() -> lift.decreaseModifier(15));
+        LIFT_UP   = new InstantCommand(() -> lift.increaseModifier(15));
 
-		// Set RunMode for motors (RawPower, VelocityControl, PositionControl)
-		liftGroup.setRunMode(MotorEx.RunMode.VelocityControl);
+        if (isAuto) {
+            autoConfig(hardwareMap);
+        }
 
-		// Break
-		liftGroup.setZeroPowerBehavior(MotorEx.ZeroPowerBehavior.BRAKE);
+    }
 
-		// SERVOS ----------------------------------------------------------------------------------------------------
-		// Map
-		clawLeft  = new SimpleServo(hardwareMap, "clawLeft", -180, 180, AngleUnit.DEGREES);
-		clawRight = new SimpleServo(hardwareMap, "clawRight", -180, 180, AngleUnit.DEGREES);
-		spool     = new CRServo(hardwareMap, "spool");
+    private void autoConfig(HardwareMap hardwareMap) {
 
-		// Invert
-		clawRight.setInverted(true);
-		spool.setInverted(true);
+        lift.setCoefficients(akP, akI, akD, akF);
 
-		// Default POS
-/*		clawLeft.turnToAngle(30);
-		clawRight.turnToAngle(30);*/
+        aprilTag = new AprilTagSubsystem(hardwareMap, "Webcam 1", 1280, 720, 0.4, 1552.74274588, 1552.74274588, 793.573231003, 202.006088244);
+        aprilTag.init();
 
-		// COMMANDS & SUBSYSTEMS --------------------------------------------------------------------------------------
-		drive = new MecanumSubsystem(new MecanumDrive(hardwareMap), true);
-		claw  = new ClawSubsystem(clawLeft, clawRight);
-		lift  = new LiftSubsystem(liftGroup, spool);
-
-/*		CLAW_OPEN  = new InstantCommand(claw::open, claw);
-		CLAW_CLOSE = new InstantCommand(claw::close, claw);*/
-
-		CLAW_OPEN  = new ClawCommand(claw, ClawSubsystem.ClawState.OPEN);
-		CLAW_CLOSE = new ClawCommand(claw, ClawSubsystem.ClawState.CLOSE);
-
-/*		CLAW_TOGGLE = new ConditionalCommand(CLAW_OPEN, CLAW_CLOSE, () -> {
-			claw.toggle();
-			return claw.isOpen();
-		});*/
-
-		LIFT_FLOOR = new InstantCommand(lift::floor, lift);
-		LIFT_LOW   = new InstantCommand(lift::low, lift);
-		LIFT_MED   = new InstantCommand(lift::med, lift);
-		LIFT_HIGH  = new InstantCommand(lift::high, lift);
-
-/*		LIFT_FLOOR = new LiftCommand(lift, LiftSubsystem.LiftLevels.FLOOR);
-		LIFT_LOW   = new LiftCommand(lift, LiftSubsystem.LiftLevels.LOW);
-		LIFT_MED   = new LiftCommand(lift, LiftSubsystem.LiftLevels.MED);
-		LIFT_HIGH  = new LiftCommand(lift, LiftSubsystem.LiftLevels.HIGH);*/
-
-		LOWER_T = new InstantCommand(() -> lift.lower(true));
-		LOWER_F = new InstantCommand(() -> lift.lower(false));
-
-		LIFT_DOWN = new InstantCommand(() -> lift.down(15));
-		LIFT_UP   = new InstantCommand(() -> lift.up(15));
-
-		if (isAuto) {
-			autoConfig(hardwareMap);
-		}
-
-	}
-
-	private void autoConfig(HardwareMap hardwareMap) {
-
-		lift.setCoefficients(akP, akI, akD, akF);
-
-		aprilTag = new AprilTagSubsystem(hardwareMap, "Webcam 1", 1280, 720, 0.4, 1552.74274588,
-		                                 1552.74274588, 793.573231003, 202.006088244);
-		aprilTag.init();
-
-		DETECTOR_WAIT = new WaitUntilCommand(aprilTag::foundZone);
-	}
+        DETECTOR_WAIT = new WaitUntilCommand(aprilTag::foundZone);
+    }
 }

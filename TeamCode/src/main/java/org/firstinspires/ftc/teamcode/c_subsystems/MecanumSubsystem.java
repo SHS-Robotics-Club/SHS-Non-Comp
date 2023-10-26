@@ -16,143 +16,166 @@ import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.Trajectory
 import java.util.List;
 
 /**
- * A subsystem that uses the {@link MecanumDrive} class.
- * This periodically calls {@link MecanumDrive#update()} which runs the internal
- * state machine for the mecanum drive. All movement/following is async to fit the paradigm.
+ * A subsystem utilizing the {@link MecanumDrive} class. Handles robot movement and localization.
  */
 public class MecanumSubsystem extends SubsystemBase {
 
-	private final MecanumDrive drive;
-	private final boolean          fieldCentric;
+    private final MecanumDrive drive;
+    private final boolean      isFieldCentric;
 
-	public MecanumSubsystem(MecanumDrive drive, boolean isFieldCentric) {
-		this.drive   = drive;
-		fieldCentric = isFieldCentric;
-	}
+    /**
+     * Constructor for MecanumSubsystem.
+     *
+     * @param drive          The MecanumDrive object controlling robot movement.
+     * @param isFieldCentric A boolean indicating if the robot operates in field-centric mode.
+     */
+    public MecanumSubsystem(MecanumDrive drive, boolean isFieldCentric) {
+        this.drive          = drive;
+        this.isFieldCentric = isFieldCentric;
+    }
 
-	public void updatePoseEstimate() {
-		drive.updatePoseEstimate();
-	}
+    /**
+     * Updates the robot's pose estimate based on its odometry readings.
+     */
+    public void updatePoseEstimate() {
+        drive.updatePoseEstimate();
+    }
 
-	public void drive(double leftY, double leftX, double rightX) {
-		Pose2d poseEstimate = getLocalizer().getPoseEstimate();
+    /**
+     * Drives the robot using the given joystick inputs.
+     *
+     * @param leftY  The left joystick Y input.
+     * @param leftX  The left joystick X input.
+     * @param rightX The right joystick X input.
+     */
+    public void drive(double leftY, double leftX, double rightX) {
+        Pose2d   poseEstimate = getLocalizer().getPoseEstimate();
+        Vector2d input        = new Vector2d(-leftY, -leftX).rotated(isFieldCentric ? -poseEstimate.getHeading() : 0);
+        setWeightedDrivePower(new Pose2d(input.getX(), input.getY(), -rightX));
+    }
 
-		Vector2d input =
-				new Vector2d(-leftY, -leftX).rotated(fieldCentric ? -poseEstimate.getHeading() : 0);
+    public void setDrivePower(Pose2d drivePower) {
+        drive.setDrivePower(drivePower);
+    }
 
-		setWeightedDrivePower(new Pose2d(input.getX(), input.getY(), -rightX));
-	}
+    public Pose2d getPoseEstimate() {
+        return drive.getPoseEstimate();
+    }
 
-	public void setDrivePower(Pose2d drivePower) {
-		drive.setDrivePower(drivePower);
-	}
+    public void setPoseEstimate(Pose2d pose) {
+        drive.setPoseEstimate(pose);
+    }
 
-	public Pose2d getPoseEstimate() {
-		return drive.getPoseEstimate();
-	}
+    public void stop() {
+        drive(0, 0, 0);
+    }
 
-	public void setPoseEstimate(Pose2d pose) {
-		drive.setPoseEstimate(pose);
-	}
+    public Pose2d getPoseVelocity() {
+        return drive.getPoseVelocity();
+    }
 
-	public void stop() {
-		drive(0, 0, 0);
-	}
+    public Localizer getLocalizer() {
+        return drive.getLocalizer();
+    }
 
-	public Pose2d getPoseVelocity() {
-		return drive.getPoseVelocity();
-	}
+    public TrajectoryBuilder trajectoryBuilder(Pose2d startPose) {
+        return drive.trajectoryBuilder(startPose);
+    }
 
-	public Localizer getLocalizer() {
-		return drive.getLocalizer();
-	}
+    public TrajectoryBuilder trajectoryBuilder(Pose2d startPose, boolean reversed) {
+        return drive.trajectoryBuilder(startPose, reversed);
+    }
 
-	public TrajectoryBuilder trajectoryBuilder(Pose2d startPose) {
-		return drive.trajectoryBuilder(startPose);
-	}
+    public TrajectoryBuilder trajectoryBuilder(Pose2d startPose, double startHeading) {
+        return drive.trajectoryBuilder(startPose, startHeading);
+    }
 
-	public TrajectoryBuilder trajectoryBuilder(Pose2d startPose, boolean reversed) {
-		return drive.trajectoryBuilder(startPose, reversed);
-	}
+    public TrajectorySequenceBuilder trajectorySequenceBuilder(Pose2d startPose) {
+        return drive.trajectorySequenceBuilder(startPose);
+    }
 
-	public TrajectoryBuilder trajectoryBuilder(Pose2d startPose, double startHeading) {
-		return drive.trajectoryBuilder(startPose, startHeading);
-	}
+    public void turnAsync(double angle) {
+        drive.turnAsync(angle);
+    }
 
-	public TrajectorySequenceBuilder trajectorySequenceBuilder(Pose2d startPose) {
-		return drive.trajectorySequenceBuilder(startPose);
-	}
+    public void turn(double angle) {
+        drive.turn(angle);
+    }
 
-	public void turnAsync(double angle) {
-		drive.turnAsync(angle);
-	}
+    public void followTrajectoryAsync(Trajectory trajectory) {
+        drive.followTrajectory(trajectory);
+    }
 
-	public void turn(double angle) {
-		drive.turn(angle);
-	}
+    public void followTrajectory(Trajectory trajectory) {
+        drive.followTrajectory(trajectory);
+    }
 
-	public void followTrajectoryAsync(Trajectory trajectory) {
-		drive.followTrajectory(trajectory);
-	}
+    public void followTrajectorySequenceAsync(TrajectorySequence trajectorySequence) {
+        drive.followTrajectorySequenceAsync(trajectorySequence);
+    }
 
-	public void followTrajectory(Trajectory trajectory) {
-		drive.followTrajectory(trajectory);
-	}
+    public void followTrajectorySequence(TrajectorySequence trajectorySequence) {
+        drive.followTrajectorySequence(trajectorySequence);
+    }
 
-	public void followTrajectorySequenceAsync(TrajectorySequence trajectorySequence) {
-		drive.followTrajectorySequenceAsync(trajectorySequence);
-	}
+    public Pose2d getLastError() {
+        return drive.getLastError();
+    }
 
-	public void followTrajectorySequence(TrajectorySequence trajectorySequence) {
-		drive.followTrajectorySequence(trajectorySequence);
-	}
+    public void update() {
+        drive.update();
+    }
 
-	public Pose2d getLastError() {
-		return drive.getLastError();
-	}
+    public void waitForIdle() {
+        drive.waitForIdle();
+    }
 
-	public void update() {
-		drive.update();
-	}
+    public boolean isBusy() {
+        return drive.isBusy();
+    }
 
-	public void waitForIdle() {
-		drive.waitForIdle();
-	}
+    public void setMode(DcMotor.RunMode runMode) {
+        drive.setMode(runMode);
+    }
 
-	public boolean isBusy() {
-		return drive.isBusy();
-	}
+    public void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior zeroPowerBehavior) {
+        drive.setZeroPowerBehavior(zeroPowerBehavior);
+    }
 
-	public void setMode(DcMotor.RunMode runMode) {
-		drive.setMode(runMode);
-	}
+    public void setPIDFCoefficients(DcMotor.RunMode runMode, PIDFCoefficients coefficients) {
+        drive.setPIDFCoefficients(runMode, coefficients);
+    }
 
-	public void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior zeroPowerBehavior) {
-		drive.setZeroPowerBehavior(zeroPowerBehavior);
-	}
+    public void setWeightedDrivePower(Pose2d drivePower) {
+        drive.setWeightedDrivePower(drivePower);
+    }
 
-	public void setPIDFCoefficients(DcMotor.RunMode runMode, PIDFCoefficients coefficients) {
-		drive.setPIDFCoefficients(runMode, coefficients);
-	}
+    public List<Double> getWheelPositions() {
+        return drive.getWheelPositions();
+    }
 
-	public void setWeightedDrivePower(Pose2d drivePower) {
-		drive.setWeightedDrivePower(drivePower);
-	}
+    public List<Double> getWheelVelocities() {
+        return drive.getWheelVelocities();
+    }
 
-	public List<Double> getWheelPositions() {
-		return drive.getWheelPositions();
-	}
+    /**
+     * Sets the motor powers for the robot's drive motors.
+     *
+     * @param frontLeft  Front left motor power.
+     * @param rearLeft   Rear left motor power.
+     * @param frontRight Front right motor power.
+     * @param rearRight  Rear right motor power.
+     */
+    public void setMotorPowers(double frontLeft, double rearLeft, double frontRight, double rearRight) {
+        drive.setMotorPowers(frontLeft, rearLeft, frontRight, rearRight);
+    }
 
-	public List<Double> getWheelVelocities() {
-		return drive.getWheelVelocities();
-	}
-
-	public void setMotorPowers(double v, double v1, double v2, double v3) {
-		drive.setMotorPowers(v, v1, v2, v3);
-	}
-
-	public double getRawExternalHeading() {
-		return drive.getRawExternalHeading();
-	}
-
+    /**
+     * Gets the raw external heading of the robot.
+     *
+     * @return The raw external heading.
+     */
+    public double getRawExternalHeading() {
+        return drive.getRawExternalHeading();
+    }
 }

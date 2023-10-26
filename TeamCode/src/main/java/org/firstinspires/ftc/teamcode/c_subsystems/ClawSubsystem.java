@@ -3,82 +3,117 @@ package org.firstinspires.ftc.teamcode.c_subsystems;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.hardware.ServoEx;
 
+/**
+ * Represents a subsystem controlling the robot's claw mechanism.
+ * The ClawSubsystem manages the open and close states of the claw using two servos.
+ */
 public class ClawSubsystem extends SubsystemBase {
-	private final ServoEx clawLeft;
-	private final ServoEx clawRight;
-	public static ClawState clawState    = ClawState.INIT;
+    public static ClawState clawState;
+    private final ServoEx   leftClawServo;
+    private final ServoEx   rightClawServo;
 
-	/**
-	 * @param clawLeft  The Left claw servo object.
-	 * @param clawRight The Right claw servo object.
-	 */
-	public ClawSubsystem(ServoEx clawLeft, ServoEx clawRight) {
-		this.clawLeft  = clawLeft;
-		this.clawRight = clawRight;
+    /**
+     * Constructor for ClawSubsystem.
+     *
+     * @param leftClawServo  The left claw servo object.
+     * @param rightClawServo The right claw servo object.
+     */
+    public ClawSubsystem(ServoEx leftClawServo, ServoEx rightClawServo) {
+        this.leftClawServo  = leftClawServo;
+        this.rightClawServo = rightClawServo;
+        clawState           = ClawState.INIT;
+    }
 
-		init();
-	}
+    @Override
+    public void periodic() {
+        updateStateAngle();
+    }
 
-	@Override
-	public void periodic() {
-		setStateAngle();
-	}
+    /**
+     * Toggles the claw state between OPEN and CLOSE.
+     */
+    public void toggleClaw() {
+        clawState = (clawState == ClawState.OPEN) ? ClawState.CLOSE : ClawState.OPEN;
+        setClawAngle(clawState.getStateAngle());
+    }
 
-	public void toggle(){
-		if (clawState == ClawState.OPEN) {
-			clawState = ClawState.CLOSE;
-		} else if (clawState == ClawState.CLOSE){
-			clawState = ClawState.OPEN;
-		}
-	}
+    /**
+     * Sets the claw servo angles based on the current claw state.
+     */
+    public void updateStateAngle() {
+        setClawAngle(clawState.getStateAngle());
+    }
 
-	public void setStateAngle (){
-		setAngle(clawState.getStateAngle());
-	}
+    /**
+     * Gets the current angle of the claw servos.
+     *
+     * @return The current angle of the claw servos.
+     */
+    public double getClawAngle() {
+        return leftClawServo.getAngle();
+    }
 
-	public void setAngle(double angle) {
-		clawLeft.turnToAngle(angle);
-		clawRight.turnToAngle(angle);
-	}
+    /**
+     * Sets the claw servo angles to a specific angle.
+     *
+     * @param angle The desired angle for the claw servos.
+     */
+    public void setClawAngle(double angle) {
+        leftClawServo.turnToAngle(angle);
+        rightClawServo.turnToAngle(angle);
+    }
 
-	public double getAngle() {
-		return clawLeft.getAngle();
-	}
+    /**
+     * Checks if the claw is at the desired angle.
+     *
+     * @return True if the claw is at the desired angle, false otherwise.
+     */
+    public boolean isAtAngle() {
+        return getClawAngle() == clawState.getStateAngle();
+    }
 
-	/**
-	 * Checks if the lift is where it should be.
-	 */
-	public boolean atAngle() {
-		return getAngle() == clawState.getStateAngle();
-	}
+    /**
+     * Opens the claw.
+     */
+    public void openClaw() {
+        clawState = ClawState.OPEN;
+    }
 
-	public void open() {
-		clawState = ClawState.OPEN;
-	}
+    /**
+     * Closes the claw.
+     */
+    public void closeClaw() {
+        clawState = ClawState.CLOSE;
+    }
 
-	public void close() {
-		clawState = ClawState.CLOSE;
-	}
+    /**
+     * Checks if the claw is in the open state.
+     *
+     * @return True if the claw is open, false otherwise.
+     */
+    public boolean isOpen() {
+        return clawState == ClawState.OPEN;
+    }
 
-	public void init() {
-		clawState = ClawState.INIT;
-	}
+    /**
+     * Enum representing the different states of the claw.
+     */
+    public enum ClawState {
+        OPEN(23), CLOSE(-15), INIT(30);
 
-	public boolean isOpen() {
-		return clawState == ClawState.OPEN;
-	}
+        private final int clawAngle;
 
-	public enum ClawState {
-		OPEN(23), CLOSE(-15), INIT(30);
+        ClawState(int clawAngle) {
+            this.clawAngle = clawAngle;
+        }
 
-		private final int clawAng;
-
-		ClawState(int clawAng) {
-			this.clawAng = clawAng;
-		}
-
-		public int getStateAngle() {
-			return clawAng;
-		}
-	}
+        /**
+         * Gets the angle associated with the claw state.
+         *
+         * @return The angle of the claw for the specific state.
+         */
+        public int getStateAngle() {
+            return clawAngle;
+        }
+    }
 }
