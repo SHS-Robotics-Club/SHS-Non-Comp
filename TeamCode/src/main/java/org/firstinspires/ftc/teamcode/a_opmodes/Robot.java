@@ -29,9 +29,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.b_commands.ClawCommand;
 import org.firstinspires.ftc.teamcode.c_subsystems.ClawSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.LiftSubsystem;
-import org.firstinspires.ftc.teamcode.c_subsystems.MecanumSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.auto.AprilTagSubsystem;
-import org.firstinspires.ftc.teamcode.d_roadrunner.drive.MecanumDrive;
+//import org.firstinspires.ftc.teamcode.d_roadrunner.drive.MecanumDrive;
 
 import java.util.List;
 
@@ -50,7 +49,7 @@ public class Robot {
 	public FtcDashboard     dashboard = FtcDashboard.getInstance(); //FTC Dashboard Instance
 	public List<LynxModule> revHubs; //Lynx Module for REV Hubs
 
-	public MecanumSubsystem drive;
+	//public MecanumSubsystem drive;
 	public ClawSubsystem    claw;
 	public LiftSubsystem    lift;
 
@@ -111,7 +110,7 @@ public class Robot {
 		clawRight.turnToAngle(30);*/
 
 		// COMMANDS & SUBSYSTEMS --------------------------------------------------------------------------------------
-		drive = new MecanumSubsystem(new MecanumDrive(hardwareMap), true);
+		//drive = new MecanumSubsystem(new MecanumDrive(hardwareMap), true);
 		claw  = new ClawSubsystem(clawLeft, clawRight);
 		lift  = new LiftSubsystem(liftGroup, spool);
 

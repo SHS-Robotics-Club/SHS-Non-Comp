@@ -3,8 +3,6 @@ package org.firstinspires.ftc.teamcode.b_commands;
 import com.arcrobotics.ftclib.command.CommandBase;
 
 import org.firstinspires.ftc.teamcode.c_subsystems.ClawSubsystem;
-import org.firstinspires.ftc.teamcode.c_subsystems.MecanumSubsystem;
-import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.TrajectorySequence;
 
 public class ClawCommand extends CommandBase {
 

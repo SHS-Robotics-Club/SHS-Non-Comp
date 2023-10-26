@@ -7,15 +7,11 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.ConditionalCommand;
-import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.b_commands.ClawCommand;
-import org.firstinspires.ftc.teamcode.b_commands.MecanumCommand;
-import org.firstinspires.ftc.teamcode.c_subsystems.ClawSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.GamepadTrigger;
 
 //@Disabled
@@ -32,7 +28,7 @@ public class MainTeleOp extends CommandOpMode {
 
 		GamepadEx gPad1 = new GamepadEx(gamepad1);
 
-		MecanumCommand driveCommand = new MecanumCommand(bot.drive, gPad1::getLeftY, gPad1::getLeftX, gPad1::getRightX, liftLevels.getDriveMult());
+		//MecanumCommand driveCommand = new MecanumCommand(bot.drive, gPad1::getLeftY, gPad1::getLeftX, gPad1::getRightX, liftLevels.getDriveMult());
 
 		// CONTROLS ----------------------------------------------------------------------------------------------------
 		// X Button = Claw Open/Close
@@ -68,7 +64,7 @@ public class MainTeleOp extends CommandOpMode {
 		// Register and Schedule ----------------------------------------------------------------------------------------------------
 		gPad1.readButtons();
 		register(bot.lift);
-		schedule(driveCommand.alongWith(new RunCommand(() -> {
+		schedule(new RunCommand(() -> {
 			// Telemetry
 			telemetry.update();
 			telemetry.addData("Voltage", bot.voltageSensor.getVoltage());
@@ -76,7 +72,7 @@ public class MainTeleOp extends CommandOpMode {
 			telemetry.addData("Lift Velocity", bot.lift.getVelocity());
 			telemetry.addData("Lift POS Error", bot.lift.getPositionError());
 			telemetry.addData("Lift Modifier", bot.lift.getMod());
-		})));
+		}));
 
 	}
 }
