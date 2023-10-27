@@ -71,7 +71,7 @@ public class PreloadRight extends CommandOpMode {
                 bot.CLAW_CLOSE, new WaitCommand(1000),
                 new TrajectoryFollowerCommand(bot.drive, auto1).alongWith(new WaitCommand(500).andThen(bot.LIFT_HIGH)),
                 bot.CLAW_OPEN, new WaitCommand(1000),
-                bot.LIFT_FLOOR.alongWith(new TrajectoryFollowerCommand(bot.drive, auto2)),
+                bot.LIFT_GROUND.alongWith(new TrajectoryFollowerCommand(bot.drive, auto2)),
                 new WaitCommand(5000),
                 new ParkCommandWithout(bot.drive, bot.aprilTag, auto2.end())
         ));

@@ -50,6 +50,6 @@ public class Cycle extends CommandOpMode {
         }));
 
         // Schedule commands for robot actions
-        schedule(bot.CLAW_CLOSE.andThen(new WaitCommand(500)).andThen(bot.LIFT_HIGH).andThen(new WaitCommand(5000)).andThen(bot.LIFT_FLOOR));
+        schedule(bot.CLAW_CLOSE.andThen(new WaitCommand(500)).andThen(bot.LIFT_HIGH).andThen(new WaitCommand(5000)).andThen(bot.LIFT_GROUND));
     }
 }

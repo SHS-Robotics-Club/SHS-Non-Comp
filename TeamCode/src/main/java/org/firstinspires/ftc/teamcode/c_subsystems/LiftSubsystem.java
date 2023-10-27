@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode.c_subsystems;
 
+import static com.arcrobotics.ftclib.util.MathUtils.clamp;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.controller.PIDFController;
-import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
 
 /**
@@ -13,8 +14,8 @@ import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
 @Config
 public class LiftSubsystem extends SubsystemBase {
     // Constants for lift math
-    private static final double SPOOL_CIRCUMFERENCE    = Math.PI / 30; //mm
-    private static final double LIFT_CONVERSION_FACTOR = SPOOL_CIRCUMFERENCE / 537.7; //Ticks
+    private static final double SPOOL_CIRCUMFERENCE    = Math.PI / 30; // in mm
+    private static final double LIFT_CONVERSION_FACTOR = SPOOL_CIRCUMFERENCE / 537.7; // in Ticks per Millimeter
 
     // Ticks per Millimeter = (Encoder Resolution × Gear Ratio) / Distance per Revolution in Millimeters
 
@@ -27,112 +28,43 @@ public class LiftSubsystem extends SubsystemBase {
     // Tolerance values
     private static final double POSITION_TOLERANCE = 5.0;
     private static final double VELOCITY_TOLERANCE = 1.0;
-
-    // Other parameters
-    private static LiftLevels LIFT_LEVEL = LiftLevels.FLOOR;
-    private static int        MODIFIER   = 0;
-    private static boolean    LOWERED    = false, MODIFIER_HALTED = false;
+    private static final double LIFT_MAX_HEIGHT    = 300; // in mm (not rn)
 
     // Motors and controllers
-    private final MotorGroup     lift;
-    private final CRServo        spool;
-    private final PIDFController pidfController = new PIDFController(KP, KI, KD, KF);
+    private final MotorGroup   lift;
+    private final PIDFController pidfController  = new PIDFController(KP, KI, KD, KF);
 
     /**
      * Constructs a LiftSubsystem object.
      *
-     * @param lift  The motor group controlling the lift.
-     * @param spool The servo controlling the lift spool.
+     * @param lift The motor group controlling the lift.
      */
-    public LiftSubsystem(MotorGroup lift, CRServo spool) {
-        this.lift  = lift;
-        this.spool = spool;
-        moveToFloor();
+    public LiftSubsystem(MotorGroup lift) {
+        this.lift = lift;
+        moveToPreset(Presets.GROUND);
         setTolerance(POSITION_TOLERANCE, VELOCITY_TOLERANCE);
     }
+
     @Override
     public void periodic() {
-        updateSpool();
-        calculate();
-        updateLift();
-    }
-
-    /**
-     * Checks if the lift is in a lowered state.
-     *
-     * @return True if the lift is lowered, false otherwise.
-     */
-    public static boolean isLowered() {
-        return LOWERED;
-    }
-
-    /**
-     * Lowers or raises the lift based on the given boolean value.
-     *
-     * @param lower True to lower the lift, false to raise the lift.
-     */
-    public void lower(boolean lower) {
-        LOWERED = lower;
-    }
-
-    /**
-     * Updates the spool servo position based on the lift's setpoint.
-     */
-    public void updateSpool() {
-        if (getSetPoint() >= 800) {
-            setSpool(0);
-        } else {
-            setSpool(1);
-        }
-    }
-
-    /**
-     * Sets the position of the spool servo.
-     *
-     * @param output The desired position of the spool servo.
-     */
-    public void setSpool(double output) {
-        spool.set(output);
+        correctPosition();
     }
 
     /**
      * Sets the power to the lift motors.
      *
-     * @param output The desired power for the lift motors.
+     * @param power The desired power for the lift motors (-1 to 1).
      */
-    public void setLiftPower(double output) {
-        lift.set(output);
+    public void setPower(double power) {
+        lift.set(power);
     }
-
-    // Encoder and PID control methods
 
     /**
      * Stops the lift motors.
      */
-    public void stopLift() {
-        setLiftPower(0);
+    public void stop() {
+        setPower(0);
         lift.stopMotor();
-    }
-
-    /**
-     * @return the velocity of the lift motors in ticks per second
-     */
-    public double getVelocity() {
-        return lift.getVelocities().get(0);
-    }
-
-    /**
-     * @return the current position of the lift motors in ticks
-     */
-    public Double getPosition() {
-        return lift.getPositions().get(0);
-    }
-
-    /**
-     * @return the positional error e(t)
-     */
-    public double getPositionError() {
-        return pidfController.getPositionError();
     }
 
     /**
@@ -143,47 +75,59 @@ public class LiftSubsystem extends SubsystemBase {
     }
 
     /**
-     * Resets the PIDF controller.
-     */
-    public void resetPIDF() {
-        pidfController.reset();
-    }
-
-    /**
      * Sets the error tolerances for the PIDF controller.
      *
-     * @param positionTolerance The position error tolerance.
-     * @param velocityTolerance The velocity error tolerance.
+     * @param positionTolerance The position error tolerance in ticks.
+     * @param velocityTolerance The velocity error tolerance in ticks per second.
      */
     public void setTolerance(double positionTolerance, double velocityTolerance) {
         pidfController.setTolerance(positionTolerance, velocityTolerance);
     }
 
     /**
-     * Sets the error tolerances for the PIDF controller.
+     * Gets the current setpoint of the PIDF controller.
      *
-     * @param positionTolerance The position error tolerance.
+     * @return The current setpoint in ticks.
      */
-    public void setTolerance(double positionTolerance) {
-        pidfController.setTolerance(positionTolerance);
+    public double getSetpoint() {
+        return pidfController.getSetPoint();
     }
 
     /**
-     * Gets the current setpoint of the PIDF controller.
+     * Gets the current position of the lift motors in ticks.
      *
-     * @return The current setpoint.
+     * @return The current position of the lift motors in ticks.
      */
-    public double getSetPoint() {
-        return pidfController.getSetPoint();
+    public double getPosition() {
+        return lift.getPositions().get(0);
+    }
+
+    /**
+     * Gets the velocity of the lift motors in ticks per second.
+     *
+     * @return The velocity of the lift motors in ticks per second.
+     */
+    public double getVelocity() {
+        return lift.getVelocities().get(0);
+    }
+
+    /**
+     * Gets the positional error e(t) of the PIDF controller.
+     *
+     * @return The positional error e(t) of the PIDF controller.
+     */
+    public double getPositionError() {
+        return pidfController.getPositionError();
     }
 
     /**
      * Sets the setpoint for the PIDF controller.
      *
-     * @param sp The desired setpoint.
+     * @param setpoint The desired setpoint in ticks.
      */
-    public void setSetPoint(double sp) {
-        pidfController.setSetPoint(sp);
+    public void setSetpoint(double setpoint) {
+        double clampedSetpoint = clamp(setpoint, 0, LIFT_MAX_HEIGHT / LIFT_CONVERSION_FACTOR);
+        pidfController.setSetPoint(clampedSetpoint);
     }
 
     /**
@@ -192,21 +136,16 @@ public class LiftSubsystem extends SubsystemBase {
      * @param heightInMM The desired height in millimeters.
      */
     public void setHeightInMM(double heightInMM) {
-        // Calculate the target position in ticks based on millimeters and lift conversion factor
         double targetPosition = heightInMM / LIFT_CONVERSION_FACTOR;
-
-        // Set the calculated position as the setpoint for the PIDF controller
-        setSetPoint(targetPosition);
+        setSetpoint(targetPosition);
     }
-
-    // Lift control logic methods
 
     /**
      * Checks if the lift is at the setpoint within the tolerance range.
      *
      * @return Whether the lift is at the setpoint.
      */
-    public boolean atSetPoint() {
+    public boolean atSetpoint() {
         return pidfController.atSetPoint();
     }
 
@@ -219,173 +158,68 @@ public class LiftSubsystem extends SubsystemBase {
         return pidfController.calculate(getPosition());
     }
 
-    // Lift modifier methods
-
     /**
      * Updates the lift motor position and power based on the current setpoint and error.
      */
-    public void updateLift() {
-        setSetPoint(LIFT_LEVEL.calculatePosition());
-
-        if (atSetPoint()) {
-            stopLift();
+    public void correctPosition() {
+        if (atSetpoint()) {
+            stop();
         } else {
-            setLiftPower(calculate());
+            setPower(calculate());
         }
     }
 
     /**
-     * Resets the lift modifier.
-     */
-    public void resetModifier() {
-        MODIFIER = 0;
-    }
-
-    /**
-     * Gets the current lift modifier value.
+     * Moves the lift to the specified preset height.
      *
-     * @return The lift modifier.
+     * @param preset The target preset height (e.g., Presets.GROUND, Presets.LOW, etc.).
      */
-    public int getModifier() {
-        return MODIFIER;
+    public void moveToPreset(Presets preset) {
+        setSetpoint(preset.getPresetHeight());
     }
 
     /**
-     * Increases the lift modifier by the given amount if not halted.
+     * Adjusts the lift position based on the modifier.
      *
-     * @param amount The amount to increase the modifier by.
+     * @param modifier The target change of height.
      */
-    public void increaseModifier(int amount) {
-        if (!MODIFIER_HALTED) {
-            MODIFIER += amount;
-        }
+    public void modifyPosition(int modifier) {
+        setSetpoint(getSetpoint() + modifier);
     }
 
-    /**
-     * Decreases the lift modifier by the given amount if not halted.
-     *
-     * @param amount The amount to decrease the modifier by.
-     */
-    public void decreaseModifier(int amount) {
-        if (!MODIFIER_HALTED) {
-            MODIFIER -= amount;
-        }
-    }
 
-    // Lift level control methods
-
-    /**
-     * Sets the lift level to the floor.
-     */
-    public void moveToFloor() {
-        LIFT_LEVEL = LiftLevels.FLOOR;
-        resetModifier();
-    }
-
-    /**
-     * Sets the lift level to low.
-     */
-    public void moveToLow() {
-        LIFT_LEVEL = LiftLevels.LOW;
-        resetModifier();
-    }
-
-    /**
-     * Sets the lift level to medium.
-     */
-    public void moveToMedium() {
-        LIFT_LEVEL = LiftLevels.MED;
-        resetModifier();
-    }
-
-    /**
-     * Sets the lift level to high.
-     */
-    public void moveToHigh() {
-        LIFT_LEVEL = LiftLevels.HIGH;
-        resetModifier();
-    }
-
-    /**
-     * Gets the drive multiplier associated with the current lift level.
-     *
-     * @return The drive multiplier.
-     */
-    public double getDriveMultiplier() {
-        return LIFT_LEVEL.getDriveMultiplier();
-    }
-
-    // Coefficient methods
-
-    /**
-     * Gets the PIDF coefficients.
-     *
-     * @return The PIDF coefficients in an array [kP, kI, kD, kF].
-     */
-    public double[] getCoefficients() {
-        return pidfController.getCoefficients();
-    }
-
-    /**
-     * Sets the PIDF coefficients.
-     *
-     * @param kP The proportional coefficient.
-     * @param kI The integral coefficient.
-     * @param kD The derivative coefficient.
-     * @param kF The feedforward coefficient.
-     */
-    public void setCoefficients(double kP, double kI, double kD, double kF) {
+    public void setCoefficients(double kP, double kI, double kD, double kF){
         pidfController.setPIDF(kP, kI, kD, kF);
     }
 
     /**
-     * Enumeration representing different lift levels.
+     * Calculates the percentage of how much the lift is extended.
+     *
+     * @return The percentage the lift is at (from 0.0 to 1.0).
      */
-    public enum LiftLevels {
-        FLOOR(0, 1.0), LOW(920, 1.0), MED(1256, 0.8), HIGH(1590, 0.7);
+    public double getPercentage() {
+        return getPosition() / LIFT_MAX_HEIGHT;
+    }
 
-        private final int    LEVEL_POSITION;
-        private final double DRIVE_MULTIPLIER;
+    /**
+     * Enumeration representing different lift presets.
+     */
+    public enum Presets {
+        GROUND(0), LOW(920), MEDIUM(1256), HIGH(1590);
 
-        LiftLevels(int levelPosition, double driveMultiplier) {
-            this.LEVEL_POSITION   = levelPosition;
-            this.DRIVE_MULTIPLIER = driveMultiplier;
+        private final int PRESET_HEIGHT;
+
+        Presets(int height) {
+            this.PRESET_HEIGHT = height;
         }
 
         /**
-         * Calculates the target position of the lift based on the current level.
+         * Gets the preset height in ticks.
          *
-         * @return The target position of the lift motor.
+         * @return The preset height in ticks.
          */
-        public int calculatePosition() {
-            int finalPosition;
-            if (LiftSubsystem.isLowered()) {
-                finalPosition = LEVEL_POSITION + LiftSubsystem.MODIFIER - 200;
-            } else {
-                finalPosition = LEVEL_POSITION + LiftSubsystem.MODIFIER;
-            }
-
-            if (finalPosition > HIGH.LEVEL_POSITION) {
-                LiftSubsystem.MODIFIER_HALTED = true;
-                LiftSubsystem.MODIFIER        = HIGH.LEVEL_POSITION - LEVEL_POSITION;
-                return HIGH.LEVEL_POSITION;
-            } else if (finalPosition < FLOOR.LEVEL_POSITION) {
-                LiftSubsystem.MODIFIER_HALTED = true;
-                LiftSubsystem.MODIFIER        = LEVEL_POSITION - FLOOR.LEVEL_POSITION;
-                return FLOOR.LEVEL_POSITION;
-            } else {
-                MODIFIER_HALTED = false;
-                return finalPosition;
-            }
-        }
-
-        /**
-         * Gets the drive multiplier associated with the current level.
-         *
-         * @return The drive multiplier.
-         */
-        public double getDriveMultiplier() {
-            return DRIVE_MULTIPLIER;
+        public int getPresetHeight() {
+            return PRESET_HEIGHT;
         }
     }
 }

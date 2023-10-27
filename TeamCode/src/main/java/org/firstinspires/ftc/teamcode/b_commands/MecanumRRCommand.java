@@ -2,13 +2,13 @@ package org.firstinspires.ftc.teamcode.b_commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 
-import org.firstinspires.ftc.teamcode.c_subsystems.MecanumSubsystem;
+import org.firstinspires.ftc.teamcode.c_subsystems.MecanumRRSubsystem;
 
 import java.util.function.DoubleSupplier;
 
-public class MecanumCommand extends CommandBase {
-    private final MecanumSubsystem drive;
-    private final DoubleSupplier   forwardInput, strafeInput, turnInput;
+public class MecanumRRCommand extends CommandBase {
+    private final MecanumRRSubsystem drive;
+    private final DoubleSupplier     forwardInput, strafeInput, turnInput;
     private double multiplier = 1.0;
 
     /**
@@ -19,7 +19,7 @@ public class MecanumCommand extends CommandBase {
      * @param strafe  The control input for driving left/right.
      * @param turn    The control input for turning.
      */
-    public MecanumCommand(MecanumSubsystem drive, DoubleSupplier forward, DoubleSupplier strafe, DoubleSupplier turn) {
+    public MecanumRRCommand(MecanumRRSubsystem drive, DoubleSupplier forward, DoubleSupplier strafe, DoubleSupplier turn) {
         this.drive        = drive;
         this.forwardInput = forward;
         this.strafeInput  = strafe;
@@ -37,7 +37,7 @@ public class MecanumCommand extends CommandBase {
      * @param turn       The control input for turning.
      * @param multiplier A multiplier for robot speed.
      */
-    public MecanumCommand(MecanumSubsystem drive, DoubleSupplier forward, DoubleSupplier strafe, DoubleSupplier turn, double multiplier) {
+    public MecanumRRCommand(MecanumRRSubsystem drive, DoubleSupplier forward, DoubleSupplier strafe, DoubleSupplier turn, double multiplier) {
         this(drive, forward, strafe, turn);
         this.multiplier = multiplier;
     }

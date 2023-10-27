@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.b_commands.auto;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 
-import org.firstinspires.ftc.teamcode.c_subsystems.MecanumSubsystem;
+import org.firstinspires.ftc.teamcode.c_subsystems.MecanumRRSubsystem;
 import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.TrajectorySequence;
 
 /**
@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.Trajectory
  */
 public class TrajectoryFollowerCommand extends CommandBase {
 
-    private final MecanumSubsystem   drive;
+    private final MecanumRRSubsystem drive;
     private final TrajectorySequence trajectory;
 
     /**
@@ -19,7 +19,7 @@ public class TrajectoryFollowerCommand extends CommandBase {
      * @param drive      The mecanum drive subsystem.
      * @param trajectory The trajectory sequence to follow.
      */
-    public TrajectoryFollowerCommand(MecanumSubsystem drive, TrajectorySequence trajectory) {
+    public TrajectoryFollowerCommand(MecanumRRSubsystem drive, TrajectorySequence trajectory) {
         this.drive      = drive;
         this.trajectory = trajectory;
 

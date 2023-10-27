@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.b_commands.auto;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.arcrobotics.ftclib.command.CommandBase;
 
-import org.firstinspires.ftc.teamcode.c_subsystems.MecanumSubsystem;
+import org.firstinspires.ftc.teamcode.c_subsystems.MecanumRRSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.auto.AprilTagSubsystem;
 import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.TrajectorySequence;
 
@@ -13,8 +13,8 @@ import org.firstinspires.ftc.teamcode.d_roadrunner.trajectorysequence.Trajectory
  */
 public class ParkCommandWithout extends CommandBase {
     private static final int startX = 36, startY = 65, startH = 90;
-    private final MecanumSubsystem drive;
-    private final AprilTagSubsystem tagSubsystem;
+    private final MecanumRRSubsystem drive;
+    private final AprilTagSubsystem  tagSubsystem;
     private final Pose2d startPose;
 
     /**
@@ -24,7 +24,7 @@ public class ParkCommandWithout extends CommandBase {
      * @param tagSubsystem The AprilTag detection subsystem.
      * @param startPose    The starting pose of the robot.
      */
-    public ParkCommandWithout(MecanumSubsystem drive, AprilTagSubsystem tagSubsystem,
+    public ParkCommandWithout(MecanumRRSubsystem drive, AprilTagSubsystem tagSubsystem,
                               Pose2d startPose) {
         this.drive = drive;
         this.tagSubsystem = tagSubsystem;

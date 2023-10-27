@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.a_opmodes;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.InstantCommand;
@@ -15,9 +17,10 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 import org.firstinspires.ftc.teamcode.c_subsystems.ClawSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.LiftSubsystem;
-import org.firstinspires.ftc.teamcode.c_subsystems.MecanumSubsystem;
+import org.firstinspires.ftc.teamcode.c_subsystems.MecanumRRSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.auto.AprilTagSubsystem;
 import org.firstinspires.ftc.teamcode.d_roadrunner.drive.MecanumDrive;
 
@@ -40,7 +43,11 @@ import java.util.List;
  */
 @Config
 public class Robot {
-    public static double akP = 0.005, akI = 0.0, akD = 0, akF = 0.0;
+    // Constants for PID coefficients
+    public static double PID_COEFFICIENT_P = 0.005;
+    public static double PID_COEFFICIENT_I = 0.0;
+    public static double PID_COEFFICIENT_D = 0;
+    public static double PID_COEFFICIENT_F = 0.0;
 
     // Hardware components
     public VoltageSensor voltageSensor;
@@ -52,14 +59,15 @@ public class Robot {
     public List<LynxModule> revHubs;
 
     // Subsystems
-    public MecanumSubsystem  drive;
-    public ClawSubsystem     claw;
-    public LiftSubsystem     lift;
-    public AprilTagSubsystem aprilTag;
+    public MecanumRRSubsystem drive;
+    public ClawSubsystem      claw;
+    public LiftSubsystem      lift;
+    public AprilTagSubsystem  aprilTag;
 
     // Commands
-    public InstantCommand CLAW_TOGGLE, CLAW_OPEN, CLAW_CLOSE, LIFT_FLOOR, LIFT_LOW, LIFT_MED, LIFT_HIGH, LIFT_LOWER, LIFT_DELOWER, LIFT_DOWN, LIFT_UP;
+    public InstantCommand CLAW_TOGGLE, CLAW_OPEN, CLAW_CLOSE, LIFT_GROUND, LIFT_LOW, LIFT_MED, LIFT_HIGH, LIFT_LOWER, LIFT_DELOWER, LIFT_DOWN, LIFT_UP;
     public WaitUntilCommand DETECTOR_WAIT;
+
 
     /**
      * Constructor for the Robot class.
@@ -77,6 +85,8 @@ public class Robot {
      * @param isAuto      A flag indicating if the robot is in autonomous mode.
      */
     public Robot(HardwareMap hardwareMap, boolean isAuto) {
+        configureRobot(hardwareMap, isAuto);
+
         // Initialize sensors and dashboard
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
         dashboard     = FtcDashboard.getInstance();
@@ -87,6 +97,19 @@ public class Robot {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
+        if (this.getVoltage(VoltageUnit.VOLTS) < 12) {
+            gamepad1.rumbleBlips(5);
+            gamepad1.setLedColor(255, 0, 0, 120000);
+        }
+    }
+
+    /**
+     * Configures the robot's hardware components and subsystems.
+     *
+     * @param hardwareMap The hardware map for accessing robot components.
+     * @param isAuto      A flag indicating if the robot is in autonomous mode.
+     */
+    private void configureRobot(HardwareMap hardwareMap, boolean isAuto) {
         // Initialize motors and servos
         liftLeft  = new MotorEx(hardwareMap, "liftL", MotorEx.GoBILDA.RPM_312);
         liftRight = new MotorEx(hardwareMap, "encoderLeftLift", MotorEx.GoBILDA.RPM_312);
@@ -104,39 +127,67 @@ public class Robot {
         spool.setInverted(true);
 
         // Initialize subsystems
-        drive = new MecanumSubsystem(new MecanumDrive(hardwareMap), true);
+        drive = new MecanumRRSubsystem(new MecanumDrive(hardwareMap), true);
         claw  = new ClawSubsystem(clawLeft, clawRight);
-        lift  = new LiftSubsystem(liftGroup, spool);
+        lift  = new LiftSubsystem(liftGroup);
 
         // Initialize commands
         CLAW_OPEN   = new InstantCommand(claw::openClaw, claw);
         CLAW_CLOSE  = new InstantCommand(claw::closeClaw, claw);
         CLAW_TOGGLE = new InstantCommand(claw::toggleClaw, claw);
 
-        LIFT_FLOOR = new InstantCommand(lift::moveToFloor, lift);
-        LIFT_LOW   = new InstantCommand(lift::moveToLow, lift);
-        LIFT_MED   = new InstantCommand(lift::moveToMedium, lift);
-        LIFT_HIGH  = new InstantCommand(lift::moveToHigh, lift);
+        LIFT_GROUND = new InstantCommand(() -> lift.moveToPreset(LiftSubsystem.Presets.GROUND));
+        LIFT_LOW    = new InstantCommand(() -> lift.moveToPreset(LiftSubsystem.Presets.LOW));
+        LIFT_MED    = new InstantCommand(() -> lift.moveToPreset(LiftSubsystem.Presets.MEDIUM));
+        LIFT_HIGH   = new InstantCommand(() -> lift.moveToPreset(LiftSubsystem.Presets.HIGH));
 
-        LIFT_LOWER   = new InstantCommand(() -> lift.lower(true));
-        LIFT_DELOWER = new InstantCommand(() -> lift.lower(false));
+        //LIFT_LOWER   = new InstantCommand(() -> lift.lower(true));
+        //LIFT_DELOWER = new InstantCommand(() -> lift.lower(false));
 
-        LIFT_DOWN = new InstantCommand(() -> lift.decreaseModifier(15));
-        LIFT_UP   = new InstantCommand(() -> lift.increaseModifier(15));
+        //LIFT_DOWN = new InstantCommand(() -> lift.decreaseModifier(15));
+        //LIFT_UP   = new InstantCommand(() -> lift.increaseModifier(15));
 
         if (isAuto) {
-            autoConfig(hardwareMap);
+            // Configure auto-specific components
+            lift.setCoefficients(PID_COEFFICIENT_P,
+                                 PID_COEFFICIENT_I,
+                                 PID_COEFFICIENT_D,
+                                 PID_COEFFICIENT_F);
+            aprilTag = new AprilTagSubsystem(hardwareMap,
+                                             "Webcam 1",
+                                             1280,
+                                             720,
+                                             0.4,
+                                             1552.74274588,
+                                             1552.74274588,
+                                             793.573231003,
+                                             202.006088244);
+            aprilTag.init();
+            DETECTOR_WAIT = new WaitUntilCommand(aprilTag::foundZone);
         }
-
     }
 
-    private void autoConfig(HardwareMap hardwareMap) {
+    /**
+     * Retrieves and returns the current voltage of the robot.
+     *
+     * @param unit The unit in which the voltage is measured (e.g., VoltageUnit.VOLTS).
+     * @return The current voltage of the robot in the specified unit.
+     */
+    public double getVoltage(VoltageUnit unit) {
+        return revHubs.get(0).getInputVoltage(unit);
+    }
 
-        lift.setCoefficients(akP, akI, akD, akF);
-
-        aprilTag = new AprilTagSubsystem(hardwareMap, "Webcam 1", 1280, 720, 0.4, 1552.74274588, 1552.74274588, 793.573231003, 202.006088244);
-        aprilTag.init();
-
-        DETECTOR_WAIT = new WaitUntilCommand(aprilTag::foundZone);
+    /**
+     * Calculates and returns the total current draw of the robot.
+     *
+     * @param unit The unit in which the current is measured (e.g., CurrentUnit.AMPS).
+     * @return The total current draw of the robot in the specified unit.
+     */
+    public double getCurrent(CurrentUnit unit) {
+        double totalCurrent = 0;
+        for (LynxModule hub : revHubs) {
+            totalCurrent += hub.getCurrent(unit);
+        }
+        return totalCurrent;
     }
 }

@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * A subsystem utilizing the {@link MecanumDrive} class. Handles robot movement and localization.
  */
-public class MecanumSubsystem extends SubsystemBase {
+public class MecanumRRSubsystem extends SubsystemBase {
 
     private final MecanumDrive drive;
     private final boolean      isFieldCentric;
@@ -29,7 +29,7 @@ public class MecanumSubsystem extends SubsystemBase {
      * @param drive          The MecanumDrive object controlling robot movement.
      * @param isFieldCentric A boolean indicating if the robot operates in field-centric mode.
      */
-    public MecanumSubsystem(MecanumDrive drive, boolean isFieldCentric) {
+    public MecanumRRSubsystem(MecanumDrive drive, boolean isFieldCentric) {
         this.drive          = drive;
         this.isFieldCentric = isFieldCentric;
     }

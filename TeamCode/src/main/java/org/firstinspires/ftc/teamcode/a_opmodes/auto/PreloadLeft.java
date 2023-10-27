@@ -66,6 +66,6 @@ public class PreloadLeft extends CommandOpMode {
         }));
 
         // Execute a sequence of commands for the preloaded ring maneuver
-        schedule(new SequentialCommandGroup(bot.DETECTOR_WAIT.withTimeout(2000), bot.CLAW_CLOSE, new WaitCommand(1000), new TrajectoryFollowerCommand(bot.drive, auto1).alongWith(new WaitCommand(500).andThen(bot.LIFT_HIGH)), bot.CLAW_OPEN, new WaitCommand(1000), bot.LIFT_FLOOR.alongWith(new TrajectoryFollowerCommand(bot.drive, auto2)), new ParkCommandWithout(bot.drive, bot.aprilTag, auto2.end())));
+        schedule(new SequentialCommandGroup(bot.DETECTOR_WAIT.withTimeout(2000), bot.CLAW_CLOSE, new WaitCommand(1000), new TrajectoryFollowerCommand(bot.drive, auto1).alongWith(new WaitCommand(500).andThen(bot.LIFT_HIGH)), bot.CLAW_OPEN, new WaitCommand(1000), bot.LIFT_GROUND.alongWith(new TrajectoryFollowerCommand(bot.drive, auto2)), new ParkCommandWithout(bot.drive, bot.aprilTag, auto2.end())));
     }
 }
