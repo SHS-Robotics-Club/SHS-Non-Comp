@@ -50,8 +50,12 @@ public class LiftSubsystem extends SubsystemBase {
         moveToFloor();
         setTolerance(POSITION_TOLERANCE, VELOCITY_TOLERANCE);
     }
-
-    // Lift control methods
+    @Override
+    public void periodic() {
+        updateSpool();
+        calculate();
+        updateLift();
+    }
 
     /**
      * Checks if the lift is in a lowered state.
@@ -355,19 +359,19 @@ public class LiftSubsystem extends SubsystemBase {
          */
         public int calculatePosition() {
             int finalPosition;
-            if (isLowered()) {
-                finalPosition = LEVEL_POSITION + MODIFIER - 200;
+            if (LiftSubsystem.isLowered()) {
+                finalPosition = LEVEL_POSITION + LiftSubsystem.MODIFIER - 200;
             } else {
-                finalPosition = LEVEL_POSITION + MODIFIER;
+                finalPosition = LEVEL_POSITION + LiftSubsystem.MODIFIER;
             }
 
             if (finalPosition > HIGH.LEVEL_POSITION) {
-                MODIFIER_HALTED = true;
-                MODIFIER        = HIGH.LEVEL_POSITION - LEVEL_POSITION;
+                LiftSubsystem.MODIFIER_HALTED = true;
+                LiftSubsystem.MODIFIER        = HIGH.LEVEL_POSITION - LEVEL_POSITION;
                 return HIGH.LEVEL_POSITION;
             } else if (finalPosition < FLOOR.LEVEL_POSITION) {
-                MODIFIER_HALTED = true;
-                MODIFIER        = LEVEL_POSITION - FLOOR.LEVEL_POSITION;
+                LiftSubsystem.MODIFIER_HALTED = true;
+                LiftSubsystem.MODIFIER        = LEVEL_POSITION - FLOOR.LEVEL_POSITION;
                 return FLOOR.LEVEL_POSITION;
             } else {
                 MODIFIER_HALTED = false;

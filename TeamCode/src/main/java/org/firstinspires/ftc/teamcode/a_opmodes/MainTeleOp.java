@@ -9,6 +9,8 @@ import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 import org.firstinspires.ftc.teamcode.b_commands.MecanumCommand;
 import org.firstinspires.ftc.teamcode.c_subsystems.GamepadTrigger;
 
@@ -52,6 +54,8 @@ public class MainTeleOp extends CommandOpMode {
             // Update telemetry data
             telemetry.update();
             telemetry.addData("Voltage", robot.voltageSensor.getVoltage());
+            telemetry.addData("Current 0", robot.revHubs.get(0).getCurrent(CurrentUnit.AMPS));
+            telemetry.addData("Current 1", robot.revHubs.get(1).getCurrent(CurrentUnit.AMPS));
             telemetry.addData("Lift Position", robot.lift.getPosition());
             telemetry.addData("Lift Velocity", robot.lift.getVelocity());
             telemetry.addData("Lift POS Error", robot.lift.getPositionError());

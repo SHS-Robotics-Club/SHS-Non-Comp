@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.c_subsystems.ClawSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.LiftSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.MecanumSubsystem;
@@ -82,7 +83,6 @@ public class Robot {
 
         // Bulk Read for REV Hubs
         revHubs = hardwareMap.getAll(LynxModule.class);
-        //revHubs.get(1).getCurrent("volt");
         for (LynxModule hub : revHubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
