@@ -45,9 +45,9 @@ public class MainTeleOp extends CommandOpMode {
         gamepad1Ex.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(robot.LIFT_LOW);
         gamepad1Ex.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(robot.LIFT_MED);
         gamepad1Ex.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(robot.LIFT_HIGH);
-        gamepad1Ex.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
+/*        gamepad1Ex.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
                   .whenPressed(robot.LIFT_LOWER)
-                  .whenReleased(robot.LIFT_DELOWER);
+                  .whenReleased(robot.LIFT_DELOWER);*/
 
         gamepad1Ex.getGamepadButton(GamepadKeys.Button.Y);
 
@@ -65,10 +65,8 @@ public class MainTeleOp extends CommandOpMode {
         register(robot.lift);
         schedule(driveCommand.alongWith(new RunCommand(() -> {
             // Update telemetry data
-            telemetry.addData("Voltage", "%.3f V%n", robot.getVoltage(VoltageUnit.VOLTS)).addData(
-                    "Current",
-                    "%.3f A%n",
-                    robot.getCurrent(CurrentUnit.AMPS));
+            telemetry.addData("Voltage", "%.3f V%n", robot.getVoltage(VoltageUnit.VOLTS));
+            telemetry.addData("Current", "%.3f A%n", robot.getCurrent(CurrentUnit.AMPS));
             telemetry.addData("Lift Position", robot.lift.getPosition());
             telemetry.addData("Lift Velocity", robot.lift.getVelocity());
             telemetry.addData("Lift POS Error", robot.lift.getPositionError());
