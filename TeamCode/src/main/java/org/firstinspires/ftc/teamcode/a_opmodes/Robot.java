@@ -65,7 +65,7 @@ public class Robot {
     public AprilTagSubsystem  aprilTag;
 
     // Commands
-    public InstantCommand CLAW_TOGGLE, CLAW_OPEN, CLAW_CLOSE, LIFT_GROUND, LIFT_LOW, LIFT_MED, LIFT_HIGH, LIFT_LOWER, LIFT_DELOWER, LIFT_DOWN, LIFT_UP;
+    public InstantCommand BOT_180, CLAW_TOGGLE, CLAW_OPEN, CLAW_CLOSE, LIFT_GROUND, LIFT_LOW, LIFT_MED, LIFT_HIGH, LIFT_LOWER, LIFT_DELOWER, LIFT_DOWN, LIFT_UP;
     public WaitUntilCommand DETECTOR_WAIT;
 
 
@@ -141,11 +141,15 @@ public class Robot {
         LIFT_MED    = new InstantCommand(() -> lift.moveToPreset(LiftSubsystem.Presets.MEDIUM));
         LIFT_HIGH   = new InstantCommand(() -> lift.moveToPreset(LiftSubsystem.Presets.HIGH));
 
-        //LIFT_LOWER   = new InstantCommand(() -> lift.lower(true));
-        //LIFT_DELOWER = new InstantCommand(() -> lift.lower(false));
+        LIFT_LOWER   = new InstantCommand(() -> lift.modifyPosition(-200));
+        LIFT_DELOWER = new InstantCommand(() -> lift.modifyPosition(200));
 
-        //LIFT_DOWN = new InstantCommand(() -> lift.decreaseModifier(15));
-        //LIFT_UP   = new InstantCommand(() -> lift.increaseModifier(15));
+        LIFT_DOWN = new InstantCommand(() -> lift.modifyPosition(-15));
+        LIFT_UP   = new InstantCommand(() -> lift.modifyPosition(15));
+
+        BOT_180 = new InstantCommand(() -> drive.turn180());
+
+
 
         if (isAuto) {
             // Configure auto-specific components

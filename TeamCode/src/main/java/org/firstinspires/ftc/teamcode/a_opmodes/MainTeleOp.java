@@ -45,11 +45,11 @@ public class MainTeleOp extends CommandOpMode {
         gamepad1Ex.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(robot.LIFT_LOW);
         gamepad1Ex.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(robot.LIFT_MED);
         gamepad1Ex.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(robot.LIFT_HIGH);
-/*        gamepad1Ex.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
+        gamepad1Ex.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
                   .whenPressed(robot.LIFT_LOWER)
-                  .whenReleased(robot.LIFT_DELOWER);*/
+                  .whenReleased(robot.LIFT_DELOWER);
 
-        gamepad1Ex.getGamepadButton(GamepadKeys.Button.Y);
+        gamepad1Ex.getGamepadButton(GamepadKeys.Button.Y).whenPressed(robot.BOT_180);
 
         // Create gamepad triggers for controlling lift movement
         new GamepadTrigger(gamepad1Ex,

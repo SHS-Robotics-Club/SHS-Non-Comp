@@ -49,9 +49,13 @@ public class MecanumRRSubsystem extends SubsystemBase {
      * @param rightX The right joystick X input.
      */
     public void drive(double leftY, double leftX, double rightX) {
-        Pose2d   poseEstimate = getLocalizer().getPoseEstimate();
+        Pose2d   poseEstimate = this.getLocalizer().getPoseEstimate();
         Vector2d input        = new Vector2d(-leftY, -leftX).rotated(isFieldCentric ? -poseEstimate.getHeading() : 0);
         setWeightedDrivePower(new Pose2d(input.getX(), input.getY(), -rightX));
+    }
+
+    public void turn180(){
+        drive.turn(Math.toRadians(180) - 1e-6);
     }
 
     public void setDrivePower(Pose2d drivePower) {
