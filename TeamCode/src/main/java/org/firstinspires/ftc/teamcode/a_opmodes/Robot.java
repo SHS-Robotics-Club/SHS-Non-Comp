@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.c_subsystems.ClawSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.LiftSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.MecanumRRSubsystem;
 import org.firstinspires.ftc.teamcode.c_subsystems.auto.AprilTagSubsystem;
+import org.firstinspires.ftc.teamcode.c_subsystems.auto.AprilTagVPSubsystem;
 import org.firstinspires.ftc.teamcode.d_roadrunner.drive.MecanumDrive;
 
 import java.util.List;
@@ -61,8 +62,8 @@ public class Robot {
     // Subsystems
     public MecanumRRSubsystem drive;
     public ClawSubsystem      claw;
-    public LiftSubsystem      lift;
-    public AprilTagSubsystem  aprilTag;
+    public LiftSubsystem       lift;
+    public AprilTagVPSubsystem aprilTag;
 
     // Commands
     public InstantCommand BOT_180, CLAW_TOGGLE, CLAW_OPEN, CLAW_CLOSE, LIFT_GROUND, LIFT_LOW, LIFT_MED, LIFT_HIGH, LIFT_LOWER, LIFT_DELOWER, LIFT_DOWN, LIFT_UP;
@@ -157,7 +158,7 @@ public class Robot {
                                  PID_COEFFICIENT_I,
                                  PID_COEFFICIENT_D,
                                  PID_COEFFICIENT_F);
-            aprilTag = new AprilTagSubsystem(hardwareMap,
+            aprilTag = new AprilTagVPSubsystem(hardwareMap,
                                              "Webcam 1",
                                              1280,
                                              720,
@@ -166,7 +167,7 @@ public class Robot {
                                              1552.74274588,
                                              793.573231003,
                                              202.006088244);
-            aprilTag.init();
+            aprilTag.initAprilTag();
             DETECTOR_WAIT = new WaitUntilCommand(aprilTag::foundZone);
         }
     }

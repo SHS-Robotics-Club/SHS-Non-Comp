@@ -1,10 +1,17 @@
 package org.firstinspires.ftc.teamcode.c_subsystems.auto;
 
+import android.util.Size;
+
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -30,9 +37,9 @@ public class AprilTagSubsystem extends SubsystemBase {
     private       AprilTagPipeline aprilTagPipeline;
     private final double           tagSize; // Metres
     private final double           fx;
-	private final double fy;
-	private final double cx;
-	private final double cy;// Pixels
+    private final double fy;
+    private final double cx;
+    private final double cy;// Pixels
 
     /**
      * Constructor for AprilTagSubsystem.
